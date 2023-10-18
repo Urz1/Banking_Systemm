@@ -197,130 +197,208 @@ public class CreateUser implements ActionListener {
                     // final Object[] row =
                     // {textField.getText(),textField2.getText(),textField3.getText(),textField4.getText()};
                     try {
+                        long phoneNumber = Long.parseLong(textField3.getText());
+                        int amount = Integer.parseInt(textField5.getText());
 
-                        Connection connection = DriverManager.getConnection(dbURL, username, password);
-                        Statement statement2 = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-                                ResultSet.CONCUR_UPDATABLE);
-                        int resultSet = statement2.executeUpdate(insertQuery);
+                        // Check for appropriate values
+                        if (textField3.getText().length() != 10) {
+                            JOptionPane.showMessageDialog(null, "Phone number must have exactly 10 digits.");
 
-                    } catch (Exception exception) {
-                        exception.printStackTrace();
-                    }
-                    try {
-                        Object[] row = new Object[8];
-                        Connection connection2 = DriverManager.getConnection(dbURL, username, password);
-                        Statement statement = connection2.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-                                ResultSet.CONCUR_UPDATABLE);
-                        ResultSet rSet = statement.executeQuery(query3);
-                        while (rSet.next()) {
-                            row[0] = rSet.getString("Customer_ID");
-                            row[1] = rSet.getString("First_Name");
-                            row[2] = rSet.getString("Last_Name");
-                            row[3] = rSet.getString("Phone");
-                            row[4] = rSet.getString("Email");
-                            row[5] = rSet.getInt("Balance");
-                            row[6] = rSet.getString("Account_Type");
-                            row[7] = rSet.getString("Interest_Rate");
+                        } else if (amount < 0) {
+                            JOptionPane.showMessageDialog(null, "Initial balance must be non-negative.");
+                        } else if (textField.getText().isEmpty() || textField2.getText().isEmpty()
+                                || textField3.getText().isEmpty() || textField4.getText().isEmpty()
+                                || textField5.getText().isEmpty()) {
+                            JOptionPane.showMessageDialog(null, "values can't be null!!");
+                        } else if (amount > 999999999) {
+                            JOptionPane.showMessageDialog(null, "To large !!");
+                        } else if (!isValidEmailFormat(textField4.getText())) {
+                            JOptionPane.showMessageDialog(null, "Invalid email format!");
+
+                        } else {
+                            try {
+
+                                Connection connection = DriverManager.getConnection(dbURL, username, password);
+                                Statement statement2 = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+                                        ResultSet.CONCUR_UPDATABLE);
+                                int resultSet = statement2.executeUpdate(insertQuery);
+
+                            } catch (Exception exception) {
+                                exception.printStackTrace();
+                            }
+                            try {
+                                Object[] row = new Object[8];
+                                Connection connection2 = DriverManager.getConnection(dbURL, username, password);
+                                Statement statement = connection2.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+                                        ResultSet.CONCUR_UPDATABLE);
+                                ResultSet rSet = statement.executeQuery(query3);
+                                while (rSet.next()) {
+                                    row[0] = rSet.getString("Customer_ID");
+                                    row[1] = rSet.getString("First_Name");
+                                    row[2] = rSet.getString("Last_Name");
+                                    row[3] = rSet.getString("Phone");
+                                    row[4] = rSet.getString("Email");
+                                    row[5] = rSet.getInt("Balance");
+                                    row[6] = rSet.getString("Account_Type");
+                                    row[7] = rSet.getString("Interest_Rate");
+                                }
+                                try {
+                                    Connection connection3 = DriverManager.getConnection(dbURL, username, password);
+                                    Statement statement3 = connection2.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+                                            ResultSet.CONCUR_UPDATABLE);
+
+                                    String insertBalance = "INSERT INTO account(Balance,Account_Type,Interest_Rate,Customer_ID) Values('"
+                                            + textField5.getText() +
+                                            "','" + typeBox.getSelectedItem() +
+                                            "','" + words[0] +
+                                            "','" + row[0] + "') ";
+                                    int rSet2 = statement3.executeUpdate(insertBalance);
+
+                                } catch (Exception exception2) {
+
+                                }
+                                row[5] = textField5.getText();
+                                row[6] = typeBox.getSelectedItem();
+                                row[7] = words[0];
+
+                                model.addRow(row);
+
+                            } catch (Exception exception2) {
+                                exception2.printStackTrace();
+                            }
+                            JOptionPane.showMessageDialog(null, "Successfully Added");
                         }
-                        try {
-                            Connection connection3 = DriverManager.getConnection(dbURL, username, password);
-                            Statement statement3 = connection2.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-                                    ResultSet.CONCUR_UPDATABLE);
-
-                            String insertBalance = "INSERT INTO account(Balance,Account_Type,Interest_Rate,Customer_ID) Values('"
-                                    + textField5.getText() +
-                                    "','" + typeBox.getSelectedItem() +
-                                    "','" + words[0] +
-                                    "','" + row[0] + "') ";
-                            int rSet2 = statement3.executeUpdate(insertBalance);
-
-                        } catch (Exception exception2) {
-
-                        }
-                        row[5] = textField5.getText();
-                        row[6] = typeBox.getSelectedItem();
-                        row[7] = words[0];
-
-                        model.addRow(row);
-                        JOptionPane.showMessageDialog(null, "A new User Is created!!");
-
-                    } catch (Exception exception2) {
-                        exception2.printStackTrace();
+                    } catch (Exception exc) {
+                        JOptionPane.showMessageDialog(null, "Phone and amount should be in number!!");
                     }
 
                 }
             });
 
-            // creating the delete buttons and adding the action performed method to it 
+            // creating the delete buttons and adding the action performed method to it
             deleteButton = new JButton("Delete");
             deleteButton.addActionListener(new ActionListener() {
 
                 public void actionPerformed(ActionEvent e) {
                     int i = table.getSelectedRow();
-                    String deleteString="DELETE FROM customer WHERE Customer_ID = '"
-                                + mouseClick
-                                + "';";
-                    String deleteAccount="DELETE FROM account WHERE Customer_ID = '"
-                                + mouseClick
-                                + "';";
-                    try {
-                        Connection connection=DriverManager.getConnection(dbURL, username, password);
-                        Statement statement=connection.createStatement(ResultSet.CONCUR_UPDATABLE,ResultSet.TYPE_SCROLL_INSENSITIVE);
-                        
-                        int rSet2=statement.executeUpdate(deleteAccount);
-                        int rset=statement.executeUpdate(deleteString);
+                    int selectedRow = table.getSelectedRow();
+                    if (selectedRow == -1) {
+                        JOptionPane.showMessageDialog(null, "Select a row to delete!!");
+                    } else {
+                        try {
+                            long phoneNumber = Long.parseLong(textField3.getText());
+                            int amount = Integer.parseInt(textField5.getText());
+                            if (textField3.getText().length() != 10) {
+                                JOptionPane.showMessageDialog(null, "Phone number must have exactly 10 digits.");
 
-                    } catch (Exception exception) {
-                        exception.printStackTrace();
+                            } else if (amount < 0) {
+                                JOptionPane.showMessageDialog(null, "Initial balance must be non-negative.");
+                            } else if (textField.getText().isEmpty() || textField2.getText().isEmpty()
+                                    || textField3.getText().isEmpty() || textField4.getText().isEmpty()
+                                    || textField5.getText().isEmpty()) {
+                                JOptionPane.showMessageDialog(null, "There is no record as such !!");
+                            } else if (amount > 999999999) {
+                                JOptionPane.showMessageDialog(null, "There is no record as such !!");
+                            } else if (!isValidEmailFormat(textField4.getText())) {
+                                JOptionPane.showMessageDialog(null, "Invalid email format!");
+
+                            } else {
+                                String deleteString = "DELETE FROM customer WHERE Customer_ID = '"
+                                        + mouseClick
+                                        + "';";
+                                String deleteAccount = "DELETE FROM account WHERE Customer_ID = '"
+                                        + mouseClick
+                                        + "';";
+                                try {
+                                    Connection connection = DriverManager.getConnection(dbURL, username, password);
+                                    Statement statement = connection.createStatement(ResultSet.CONCUR_UPDATABLE,
+                                            ResultSet.TYPE_SCROLL_INSENSITIVE);
+                                    int rset3 = statement
+                                            .executeUpdate("Delete from loan where Customer_ID='" + mouseClick + "';");
+                                    int rSet2 = statement.executeUpdate(deleteAccount);
+                                    int rset = statement.executeUpdate(deleteString);
+
+                                } catch (Exception exception) {
+                                    exception.printStackTrace();
+                                }
+                                model.removeRow(i);
+                            }
+                        } catch (Exception exc) {
+                            JOptionPane.showMessageDialog(null, "There is no record as such !!");
+                        }
                     }
-                    model.removeRow(i);
-                    JOptionPane.showMessageDialog(null, "A user is deleted !!");
+
                 }
             });
 
-            // Creating the update button and adding an action listener to the button 
+            // Creating the update button and adding an action listener to the button
             updateButton = new JButton("Update");
             updateButton.addActionListener(new ActionListener() {
 
                 public void actionPerformed(ActionEvent e) {
-                    try {
-                        int phone = Integer.parseInt(textField3.getText());
-                        int amount = Integer.parseInt(textField5.getText());
-
-                        String updateString = "UPDATE customer SET First_Name = '" + textField.getText()
-                                + "', Last_Name = '" + textField2.getText() + "', Phone = '" + textField3.getText()
-                                + "', Email = '" + textField4.getText() + "' WHERE Customer_ID = '" + mouseClick + "'";
-                        String accountString = "UPDATE account SET Balance = '" + textField5.getText()
-                                + "', Account_Type = '" + typeBox.getSelectedItem() + "' WHERE Customer_ID = '"
-                                + mouseClick
-                                + "'";
+                    int selectedRow = table.getSelectedRow();
+                    if (selectedRow == -1) {
+                        JOptionPane.showMessageDialog(null, "Select a row to be Updated!!");
+                    } else {
                         try {
-                            Connection connection = DriverManager.getConnection(dbURL, username, password);
-                            Statement statement = connection.createStatement(ResultSet.CONCUR_UPDATABLE,
-                                    ResultSet.TYPE_SCROLL_INSENSITIVE);
-                            int rset = statement.executeUpdate(updateString);
-                            Statement statement2 = connection.createStatement(ResultSet.CONCUR_UPDATABLE,
-                                    ResultSet.TYPE_SCROLL_INSENSITIVE);
+                            long phoneNumber = Long.parseLong(textField3.getText());
+                            int amount = Integer.parseInt(textField5.getText());
+                            if (textField3.getText().length() != 10) {
+                                JOptionPane.showMessageDialog(null, "Phone number must have exactly 10 digits.");
 
-                            int rSet2 = statement2.executeUpdate(accountString);
+                            } else if (amount < 0) {
+                                JOptionPane.showMessageDialog(null, "Initial balance must be non-negative.");
+                            } else if (textField.getText().isEmpty() || textField2.getText().isEmpty()
+                                    || textField3.getText().isEmpty() || textField4.getText().isEmpty()
+                                    || textField5.getText().isEmpty()) {
+                                JOptionPane.showMessageDialog(null, "Fill the values!!");
+                            } else if (amount > 999999999) {
+                                JOptionPane.showMessageDialog(null, "Too large Balance !!");
+                            }
 
-                        } catch (Exception exception) {
-                            exception.printStackTrace();
+                            else if (!isValidEmailFormat(textField4.getText())) {
+                                JOptionPane.showMessageDialog(null, "Invalid email format!");
+
+                            } else {
+                                String updateString = "UPDATE customer SET First_Name = '" + textField.getText()
+                                        + "', Last_Name = '" + textField2.getText() + "', Phone = '"
+                                        + textField3.getText()
+                                        + "', Email = '" + textField4.getText() + "' WHERE Customer_ID = '" + mouseClick
+                                        + "'";
+                                String accountString = "UPDATE account SET Balance = '" + textField5.getText()
+                                        + "', Account_Type = '" + typeBox.getSelectedItem() + "' WHERE Customer_ID = '"
+                                        + mouseClick
+                                        + "'";
+                                try {
+                                    Connection connection = DriverManager.getConnection(dbURL, username, password);
+                                    Statement statement = connection.createStatement(ResultSet.CONCUR_UPDATABLE,
+                                            ResultSet.TYPE_SCROLL_INSENSITIVE);
+                                    int rset = statement.executeUpdate(updateString);
+                                    Statement statement2 = connection.createStatement(ResultSet.CONCUR_UPDATABLE,
+                                            ResultSet.TYPE_SCROLL_INSENSITIVE);
+
+                                    int rSet2 = statement2.executeUpdate(accountString);
+
+                                } catch (Exception exception) {
+                                    exception.printStackTrace();
+                                }
+                                int i = table.getSelectedRow();
+                                String selectedItem = (String) intersetBox.getSelectedItem();
+                                String[] words = selectedItem.split(", ");
+
+                                model.setValueAt(textField.getText(), i, 1);
+                                model.setValueAt(textField2.getText(), i, 2);
+                                model.setValueAt(textField3.getText(), i, 3);
+                                model.setValueAt(textField4.getText(), i, 4);
+                                model.setValueAt(textField5.getText(), i, 5);
+                                model.setValueAt(typeBox.getSelectedItem(), i, 6);
+                                model.setValueAt(words[0], i, 7);
+                                JOptionPane.showMessageDialog(null, "Successfully Updated");
+                            }
+                        } catch (Exception Number) {
+                            JOptionPane.showMessageDialog(null, "Should contain appropriate Values.");
+                            
                         }
-                        int i = table.getSelectedRow();
-                        String selectedItem = (String) intersetBox.getSelectedItem();
-                        String[] words = selectedItem.split(", ");
-
-                        model.setValueAt(textField.getText(), i, 1);
-                        model.setValueAt(textField2.getText(), i, 2);
-                        model.setValueAt(textField3.getText(), i, 3);
-                        model.setValueAt(textField4.getText(), i, 4);
-                        model.setValueAt(textField5.getText(), i, 5);
-                        model.setValueAt(typeBox.getSelectedItem(), i, 6);
-                        model.setValueAt(words[0], i, 7);
-                        JOptionPane.showMessageDialog(null, "Successfully Updated");
-                    } catch (NumberFormatException Number) {
-                        JOptionPane.showMessageDialog(null, "Should contain appropriate Values.");
                     }
 
                 }
@@ -364,13 +442,32 @@ public class CreateUser implements ActionListener {
         frame.setVisible(true);
     }
 
-    public static void main(String[] args) {
-        CreateUser user = new CreateUser();
-    }
-
     @Override
     public void actionPerformed(ActionEvent e) {
 
+    }
+
+    private boolean isValidEmailFormat(String email) {
+        if (email == null || email.isEmpty()) {
+            return false;
+        }
+
+        if (!email.contains("@") || !email.contains(".")) {
+            return false;
+        }
+
+        int atIndex = email.indexOf("@");
+        int dotIndex = email.lastIndexOf(".");
+
+        if (atIndex >= dotIndex) {
+            return false;
+        }
+
+        if (dotIndex >= email.length() - 1) {
+            return false;
+        }
+
+        return true;
     }
 
 }
